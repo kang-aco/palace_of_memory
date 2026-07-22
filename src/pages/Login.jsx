@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useAuth } from '../auth/AuthContext.jsx'
+import theme, { floatUp } from '../theme.js'
 
 // 로그인 / 회원가입 화면입니다. (하나의 화면에서 탭으로 전환)
 export default function Login() {
@@ -28,8 +29,9 @@ export default function Login() {
 
   return (
     <div style={styles.wrap}>
-      <h1 style={styles.title}>🏠 메모리룸</h1>
-      <p style={styles.sub}>사진 위에 핀을 찍어 기억을 저장하세요</p>
+      <div style={styles.logo}>M</div>
+      <div style={styles.title}>메모리룸</div>
+      <p style={styles.sub}>사진 위에 핀을 찍고, 게임처럼 복습하세요</p>
 
       <div style={styles.tabs}>
         <button
@@ -56,7 +58,7 @@ export default function Login() {
               style={styles.input}
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
-              placeholder="예: 홍길동"
+              placeholder="닉네임"
             />
           </>
         )}
@@ -106,62 +108,88 @@ export default function Login() {
 
 const styles = {
   wrap: {
-    maxWidth: 400,
-    margin: '60px auto',
-    padding: '0 20px',
-    fontFamily: 'system-ui, sans-serif',
+    ...floatUp,
+    paddingTop: 40,
     textAlign: 'center',
   },
-  title: { fontSize: 28, marginBottom: 4 },
-  sub: { color: '#64748b', marginBottom: 28 },
-  tabs: { display: 'flex', gap: 8, marginBottom: 16 },
+  logo: {
+    width: 52,
+    height: 52,
+    borderRadius: 15,
+    background: `linear-gradient(135deg, ${theme.accent}, ${theme.accentEnd})`,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontWeight: 800,
+    fontSize: 22,
+    margin: '0 auto 14px',
+    color: theme.accentText,
+  },
+  title: { fontSize: 22, fontWeight: 800, marginBottom: 6 },
+  sub: { fontSize: 13, color: theme.textMuted, marginBottom: 28 },
+  tabs: {
+    display: 'flex',
+    background: theme.card,
+    border: `1px solid ${theme.border}`,
+    borderRadius: 14,
+    padding: 4,
+    marginBottom: 20,
+  },
   tab: {
     flex: 1,
-    padding: '10px',
-    borderRadius: 8,
-    border: '1px solid #cbd5e1',
-    background: '#fff',
+    border: 'none',
+    borderRadius: 11,
+    padding: 11,
+    fontWeight: 800,
+    fontSize: 13,
     cursor: 'pointer',
-    fontSize: 15,
-    color: '#64748b',
+    whiteSpace: 'nowrap',
+    background: 'transparent',
+    color: theme.textMuted2,
+    fontFamily: 'inherit',
   },
-  tabActive: { background: '#2563eb', color: '#fff', borderColor: '#2563eb', fontWeight: 700 },
+  tabActive: { background: theme.accent, color: theme.accentText },
   card: {
-    border: '1px solid #e2e8f0',
-    borderRadius: 12,
-    padding: 20,
+    background: theme.card,
+    border: `1px solid ${theme.border}`,
+    borderRadius: 18,
+    padding: 22,
     textAlign: 'left',
   },
-  label: { display: 'block', marginTop: 12, marginBottom: 6, fontWeight: 600, fontSize: 14 },
+  label: { display: 'block', fontSize: 11, fontWeight: 700, color: theme.textMuted2, marginBottom: 6, marginTop: 14 },
   input: {
     width: '100%',
-    padding: '10px 12px',
-    borderRadius: 8,
-    border: '1px solid #cbd5e1',
-    fontSize: 15,
-    boxSizing: 'border-box',
+    background: theme.cardAlt,
+    border: `1px solid ${theme.border}`,
+    borderRadius: 10,
+    padding: '12px 13px',
+    color: theme.text,
+    fontSize: 13,
+    fontFamily: 'inherit',
   },
-  error: { color: '#e11d48', marginTop: 12, fontSize: 14 },
+  error: { color: theme.dangerText, marginTop: 12, fontSize: 13 },
   submit: {
     width: '100%',
-    marginTop: 18,
-    padding: '13px',
-    borderRadius: 10,
+    marginTop: 20,
+    background: theme.accent,
     border: 'none',
-    background: '#2563eb',
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 700,
+    borderRadius: 12,
+    padding: 14,
+    color: theme.accentText,
+    fontWeight: 800,
+    fontSize: 14,
     cursor: 'pointer',
+    fontFamily: 'inherit',
   },
-  hint: { marginTop: 18, color: '#64748b', fontSize: 14 },
+  hint: { fontSize: 12, color: theme.textMuted3, marginTop: 18 },
   linkBtn: {
     border: 'none',
     background: 'none',
-    color: '#2563eb',
+    color: theme.accent,
     cursor: 'pointer',
-    fontSize: 14,
-    fontWeight: 600,
+    fontSize: 12,
+    fontWeight: 700,
     padding: 0,
+    fontFamily: 'inherit',
   },
 }

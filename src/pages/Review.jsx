@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
+import theme, { floatUp } from '../theme.js'
 
 // 4단계 복습 화면입니다.
 //  - 내용(앵커)이 있는 핀만 하나씩 보여줍니다.
@@ -35,6 +36,10 @@ export default function Review() {
   const image = room?.imageUrls?.[0] || null
   const current = items[index] || null
   const finished = status === 'ok' && index >= items.length && items.length > 0
+  const successRate =
+    results.length > 0
+      ? Math.round((results.filter((r) => r.recallSuccess).length / results.length) * 100)
+      : 0
 
   async function grade(recallSuccess, difficulty) {
     if (!current || busy) return
@@ -69,21 +74,17 @@ export default function Review() {
 
   return (
     <div style={styles.wrap}>
-      <div style={styles.topbar}>
-        <Link to={`/rooms/${id}`} style={styles.back}>
-          ← 룸으로
-        </Link>
-      </div>
+      <Link to={`/rooms/${id}`} style={styles.back}>
+        ← 룸으로
+      </Link>
 
-      {status === 'loading' && <p>⏳ 불러오는 중...</p>}
-      {status === 'error' && <p style={{ color: '#e11d48' }}>⚠️ 불러오지 못했어요.</p>}
+      {status === 'loading' && <p style={styles.loading}>⏳ 불러오는 중...</p>}
+      {status === 'error' && <p style={styles.errorText}>⚠️ 불러오지 못했어요.</p>}
 
       {status === 'ok' && items.length === 0 && (
         <div style={styles.center}>
           <h1 style={styles.title}>복습할 내용이 없어요</h1>
-          <p style={styles.sub}>
-            먼저 룸에서 핀에 암기 내용을 저장해 주세요.
-          </p>
+          <p style={styles.sub}>먼저 룸에서 핀에 암기 내용을 저장해 주세요.</p>
           <Link to={`/rooms/${id}`} style={styles.primaryLink}>
             룸으로 돌아가기
           </Link>
@@ -92,10 +93,22 @@ export default function Review() {
 
       {status === 'ok' && !finished && current && (
         <>
-          <h1 style={styles.title}>{room.name} · 복습</h1>
+          <div style={styles.headTitle}>{room.name} · 복습</div>
           <p style={styles.sub}>
             {index + 1} / {items.length}
           </p>
+
+          <div style={styles.dotsRow}>
+            {items.map((pin, i) => (
+              <div
+                key={pin.id}
+                style={{
+                  ...styles.dot,
+                  background: i < index ? theme.success : i === index ? theme.accent : theme.progressTrack,
+                }}
+              />
+            ))}
+          </div>
 
           {image && (
             <div style={styles.imageBox}>
@@ -109,9 +122,7 @@ export default function Review() {
                       ...styles.pin,
                       left: `${pin.x * 100}%`,
                       top: `${pin.y * 100}%`,
-                      background: isCurrent ? '#2563eb' : '#cbd5e1',
-                      opacity: isCurrent ? 1 : 0.5,
-                      transform: `translate(-50%, -50%) scale(${isCurrent ? 1.25 : 1})`,
+                      ...(isCurrent ? styles.pinCurrent : styles.pinIdle),
                     }}
                   >
                     {pin.number}
@@ -123,7 +134,7 @@ export default function Review() {
 
           <div style={styles.card}>
             <p style={styles.q}>
-              <b>{current.number}번 핀</b>의 내용을 떠올려 보세요.
+              <span style={styles.qAccent}>{current.number}번 핀</span>의 내용을 떠올려 보세요.
             </p>
 
             {!revealed ? (
@@ -185,19 +196,24 @@ export default function Review() {
 
       {finished && (
         <div style={styles.center}>
-          <h1 style={styles.title}>복습 완료! 🎉</h1>
-          <p style={styles.sub}>
-            총 {results.length}개 · 성공{' '}
-            {results.filter((r) => r.recallSuccess).length}개 · 실패{' '}
-            {results.filter((r) => !r.recallSuccess).length}개
+          <div style={styles.doneEmoji}>🎉</div>
+          <h1 style={styles.doneTitle}>복습 완료!</h1>
+          <p style={styles.doneSub}>
+            총 {results.length}개 · 정답률 {successRate}%
           </p>
 
           <div style={styles.summaryList}>
             {results.map((r, i) => (
               <div key={i} style={styles.summaryRow}>
-                <span>
-                  {r.recallSuccess ? '✅' : '❌'} {r.number}번 ({r.difficulty})
-                </span>
+                <div style={styles.summaryLeft}>
+                  <div
+                    style={{
+                      ...styles.summaryDot,
+                      background: r.recallSuccess ? theme.success : theme.danger,
+                    }}
+                  />
+                  {r.number}번 ({r.difficulty})
+                </div>
                 {typeof r.days === 'number' && (
                   <span style={styles.summaryDays}>다음 복습 {r.days}일 뒤</span>
                 )}
@@ -224,116 +240,147 @@ export default function Review() {
 }
 
 const styles = {
-  wrap: {
-    maxWidth: 520,
-    margin: '40px auto',
-    padding: '0 20px',
-    fontFamily: 'system-ui, sans-serif',
+  wrap: floatUp,
+  back: {
+    display: 'inline-block',
+    background: 'none',
+    border: 'none',
+    color: theme.textMuted2,
+    fontSize: 13,
+    fontWeight: 600,
+    marginBottom: 12,
   },
-  topbar: { marginBottom: 16 },
-  back: { color: '#2563eb', textDecoration: 'none', fontSize: 14 },
-  center: { textAlign: 'center', marginTop: 40 },
-  title: { fontSize: 24, margin: '8px 0 4px' },
-  sub: { color: '#64748b', marginBottom: 20 },
+  loading: { color: theme.textMuted },
+  errorText: { color: theme.dangerText },
+  center: { textAlign: 'center', marginTop: 20 },
+  title: { fontSize: 22, fontWeight: 800, margin: '8px 0 4px' },
+  headTitle: { fontSize: 20, fontWeight: 800, marginBottom: 4 },
+  sub: { color: theme.textMuted, marginBottom: 14, fontSize: 12 },
+  dotsRow: { display: 'flex', gap: 5, marginBottom: 16 },
+  dot: { flex: 1, height: 5, borderRadius: 3 },
   imageBox: {
     position: 'relative',
-    display: 'inline-block',
+    display: 'block',
     lineHeight: 0,
-    borderRadius: 12,
-    overflow: 'hidden',
-    border: '1px solid #e2e8f0',
     width: '100%',
+    height: 280,
+    borderRadius: theme.radiusMd,
+    overflow: 'hidden',
+    marginBottom: 16,
+    background: '#333',
   },
-  image: { width: '100%', display: 'block', userSelect: 'none' },
+  image: { width: '100%', height: '100%', objectFit: 'cover', display: 'block', userSelect: 'none' },
   pin: {
     position: 'absolute',
-    width: 30,
-    height: 30,
+    transform: 'translate(-50%, -50%)',
     borderRadius: '50%',
-    color: '#fff',
-    border: '2px solid #fff',
-    boxShadow: '0 1px 4px rgba(0,0,0,0.4)',
-    fontWeight: 700,
-    fontSize: 14,
+    color: theme.text,
+    fontWeight: 800,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  card: {
-    marginTop: 20,
-    border: '1px solid #e2e8f0',
-    borderRadius: 12,
-    padding: 20,
-    background: '#f8fafc',
+  pinIdle: {
+    width: 30,
+    height: 30,
+    background: theme.progressTrack,
+    border: `2px solid ${theme.text}`,
+    opacity: 0.5,
+    fontSize: 13,
   },
-  q: { fontSize: 16, marginBottom: 16 },
+  pinCurrent: {
+    width: 40,
+    height: 40,
+    background: theme.accent,
+    border: `3px solid ${theme.text}`,
+    color: theme.accentText,
+    fontSize: 16,
+    boxShadow: `0 0 0 6px ${theme.accentGlow}`,
+  },
+  card: {
+    background: theme.card,
+    border: `1px solid ${theme.border}`,
+    borderRadius: theme.radiusMd,
+    padding: 20,
+  },
+  q: { fontSize: 14, fontWeight: 700, marginBottom: 14, marginTop: 0 },
+  qAccent: { color: theme.accent },
   revealBtn: {
     width: '100%',
-    padding: '14px',
-    borderRadius: 10,
+    padding: 15,
+    borderRadius: theme.radiusSm,
     border: 'none',
-    background: '#2563eb',
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 700,
+    background: theme.accent,
+    color: theme.accentText,
+    fontSize: 14,
+    fontWeight: 800,
     cursor: 'pointer',
+    fontFamily: 'inherit',
   },
   answer: {
-    background: '#fff',
-    border: '1px solid #e2e8f0',
-    borderRadius: 10,
-    padding: 16,
+    background: theme.cardAlt,
+    borderRadius: theme.radiusSm,
+    padding: 14,
     marginBottom: 16,
   },
-  answerContent: { fontSize: 18, fontWeight: 700, lineHeight: 1.5 },
-  meta: { color: '#64748b', fontSize: 14, marginTop: 6 },
-  gradeLabel: { fontWeight: 600, fontSize: 14, marginBottom: 8 },
+  answerContent: { fontSize: 16, fontWeight: 800, marginBottom: 6, lineHeight: 1.5 },
+  meta: { color: theme.textMuted, fontSize: 12, marginTop: 6 },
+  gradeLabel: { fontWeight: 700, fontSize: 12, marginBottom: 8, color: theme.textMuted },
   gradeRow: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 },
   gradeBtn: {
-    padding: '12px',
-    borderRadius: 10,
-    border: '1px solid #cbd5e1',
-    fontSize: 14,
-    fontWeight: 600,
+    padding: 13,
+    borderRadius: theme.radiusSm,
+    fontSize: 13,
+    fontWeight: 800,
     cursor: 'pointer',
+    fontFamily: 'inherit',
   },
-  fail: { background: '#fef2f2', borderColor: '#fecaca', color: '#b91c1c' },
-  hard: { background: '#fff7ed', borderColor: '#fed7aa', color: '#c2410c' },
-  normal: { background: '#f8fafc', borderColor: '#cbd5e1', color: '#334155' },
-  easy: { background: '#f0fdf4', borderColor: '#bbf7d0', color: '#15803d' },
+  fail: { background: theme.dangerBgAlt, border: `1px solid ${theme.dangerBorder}`, color: theme.dangerText },
+  hard: { background: theme.warningBg, border: `1px solid ${theme.warningBorder}`, color: theme.warningText },
+  normal: { background: 'oklch(0.24 0.02 264)', border: '1px solid oklch(0.4 0.02 264)', color: 'oklch(0.85 0.01 264)' },
+  easy: { background: theme.successBgAlt, border: `1px solid ${theme.successBorder}`, color: theme.successText },
+  doneEmoji: { fontSize: 44, marginBottom: 8 },
+  doneTitle: { fontSize: 24, fontWeight: 900, marginBottom: 6, marginTop: 0 },
+  doneSub: { fontSize: 13, color: theme.textMuted, marginBottom: 22 },
   summaryList: {
     textAlign: 'left',
-    border: '1px solid #e2e8f0',
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 20,
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 8,
+    marginBottom: 22,
   },
   summaryRow: {
     display: 'flex',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    padding: '8px 6px',
-    borderBottom: '1px solid #f1f5f9',
-    fontSize: 14,
+    background: theme.card,
+    border: `1px solid ${theme.border}`,
+    borderRadius: 12,
+    padding: '12px 16px',
   },
-  summaryDays: { color: '#64748b' },
+  summaryLeft: { display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 700 },
+  summaryDot: { width: 8, height: 8, borderRadius: '50%' },
+  summaryDays: { color: theme.textMuted, fontSize: 12 },
   finishButtons: { display: 'flex', flexDirection: 'column', gap: 10 },
   secondaryBtn: {
     width: '100%',
-    padding: '12px',
-    borderRadius: 10,
-    border: '1px solid #cbd5e1',
-    background: '#fff',
-    fontSize: 15,
+    padding: 15,
+    borderRadius: theme.radiusMd,
+    border: `1px solid ${theme.border}`,
+    background: 'none',
+    color: 'oklch(0.85 0.01 264)',
+    fontSize: 14,
+    fontWeight: 700,
     cursor: 'pointer',
+    fontFamily: 'inherit',
   },
   primaryLink: {
     display: 'inline-block',
     marginTop: 12,
-    padding: '12px 20px',
-    borderRadius: 10,
-    background: '#2563eb',
-    color: '#fff',
-    textDecoration: 'none',
+    padding: '14px 22px',
+    borderRadius: theme.radiusSm,
+    background: theme.accent,
+    color: theme.accentText,
     fontWeight: 700,
   },
 }

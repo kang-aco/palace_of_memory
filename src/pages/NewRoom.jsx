@@ -2,6 +2,7 @@ import { useRef, useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { fileToResizedDataUrl, sampleUrlToDataUrl } from '../lib/image.js'
 import { SAMPLE_IMAGES } from '../data/samples.js'
+import theme, { floatUp } from '../theme.js'
 
 // 2단계 핵심 화면입니다.
 //  1) 룸 이름을 적고
@@ -110,14 +111,12 @@ export default function NewRoom() {
 
   return (
     <div style={styles.wrap}>
-      <div style={styles.topbar}>
-        <Link to="/" style={styles.back}>
-          ← 홈으로
-        </Link>
-        <h1 style={styles.title}>새 룸 만들기</h1>
-      </div>
+      <Link to="/" style={styles.back}>
+        ← 홈으로
+      </Link>
+      <div style={styles.title}>새 룸 만들기</div>
 
-      <label style={styles.label}>룸 이름</label>
+      <div style={styles.label}>룸 이름</div>
       <input
         style={styles.input}
         value={name}
@@ -125,7 +124,7 @@ export default function NewRoom() {
         placeholder="예: 조선 왕 순서 외우기"
       />
 
-      <label style={styles.label}>카테고리 (선택)</label>
+      <div style={styles.label}>카테고리 (선택)</div>
       <input
         style={styles.input}
         value={category}
@@ -133,8 +132,8 @@ export default function NewRoom() {
         placeholder="예: 한국사"
       />
 
-      <label style={styles.label}>사진</label>
-      <input type="file" accept="image/*" onChange={handleFile} />
+      <div style={styles.label}>사진</div>
+      <input type="file" accept="image/*" onChange={handleFile} style={styles.fileInput} />
 
       <div style={styles.sampleHead}>
         <span>사진이 없다면 예시 장소에서 골라보세요</span>
@@ -151,10 +150,12 @@ export default function NewRoom() {
             onClick={() => useSample(s)}
             title={`${s.label} 예시 사용`}
           >
-            <img src={s.file} alt={s.label} style={styles.sampleThumb} />
-            <span style={styles.sampleLabel}>
-              {s.emoji} {s.label}
-            </span>
+            <div style={styles.sampleThumbWrap}>
+              <img src={s.file} alt={s.label} style={styles.sampleThumb} />
+              <span style={styles.sampleLabel}>
+                {s.emoji} {s.label}
+              </span>
+            </div>
           </button>
         ))}
       </div>
@@ -211,67 +212,88 @@ export default function NewRoom() {
         onClick={handleSave}
         disabled={saving}
       >
-        {saving ? '저장 중...' : '룸 저장하기'}
+        {saving ? '저장 중...' : '룸 저장하고 핀 찍으러 가기 →'}
       </button>
     </div>
   )
 }
 
 const styles = {
-  wrap: {
-    maxWidth: 520,
-    margin: '40px auto',
-    padding: '0 20px',
-    fontFamily: 'system-ui, sans-serif',
+  wrap: floatUp,
+  back: {
+    display: 'inline-block',
+    background: 'none',
+    border: 'none',
+    color: theme.textMuted2,
+    fontSize: 13,
+    fontWeight: 600,
+    marginBottom: 14,
   },
-  topbar: { marginBottom: 16 },
-  back: { color: '#2563eb', textDecoration: 'none', fontSize: 14 },
-  title: { fontSize: 24, margin: '8px 0 0' },
-  label: { display: 'block', marginTop: 18, marginBottom: 6, fontWeight: 600, fontSize: 14 },
+  title: { fontSize: 22, fontWeight: 800, marginBottom: 18 },
+  label: { fontSize: 12, fontWeight: 700, color: theme.textMuted2, marginBottom: 6, marginTop: 16 },
   input: {
     width: '100%',
-    padding: '10px 12px',
-    borderRadius: 8,
-    border: '1px solid #cbd5e1',
-    fontSize: 15,
-    boxSizing: 'border-box',
+    background: theme.card,
+    border: `1px solid ${theme.border}`,
+    borderRadius: theme.radiusSm,
+    padding: '13px 14px',
+    color: theme.text,
+    fontSize: 14,
+    fontFamily: 'inherit',
   },
-  hint: { marginTop: 18, color: '#475569', fontSize: 14, lineHeight: 1.6 },
+  fileInput: {
+    width: '100%',
+    color: theme.textMuted2,
+    fontSize: 13,
+  },
+  hint: { marginTop: 16, color: theme.textMuted3, fontSize: 13, lineHeight: 1.6 },
   sampleHead: {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: 8,
-    marginTop: 16,
+    marginTop: 18,
     marginBottom: 8,
-    fontSize: 13,
-    color: '#64748b',
+    fontSize: 12,
+    color: theme.textMuted,
   },
-  guideLink: { color: '#2563eb', textDecoration: 'none', whiteSpace: 'nowrap', fontWeight: 600 },
+  guideLink: { color: theme.accent, whiteSpace: 'nowrap', fontWeight: 600 },
   sampleGrid: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fill, minmax(110px, 1fr))',
+    gridTemplateColumns: 'repeat(4, 1fr)',
     gap: 8,
+    marginBottom: 20,
   },
   sampleCard: {
-    border: '1px solid #e2e8f0',
-    borderRadius: 10,
-    overflow: 'hidden',
-    background: '#fff',
     cursor: 'pointer',
+    borderRadius: theme.radiusSm,
+    overflow: 'hidden',
+    border: `2px solid ${theme.border}`,
+    position: 'relative',
     padding: 0,
-    display: 'flex',
-    flexDirection: 'column',
+    background: 'none',
   },
-  sampleThumb: { width: '100%', aspectRatio: '4 / 3', objectFit: 'cover', display: 'block' },
-  sampleLabel: { padding: '6px 4px', fontSize: 12, color: '#334155' },
+  sampleThumbWrap: { position: 'relative', width: '100%', height: 64 },
+  sampleThumb: { width: '100%', height: '100%', objectFit: 'cover', display: 'block' },
+  sampleLabel: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    background: 'oklch(0.1 0.02 264 / 0.7)',
+    padding: '3px 5px',
+    fontSize: 9,
+    fontWeight: 700,
+    textAlign: 'center',
+    color: theme.text,
+  },
   imageBox: {
     position: 'relative',
-    display: 'inline-block',
+    display: 'block',
     lineHeight: 0,
-    borderRadius: 12,
+    borderRadius: theme.radiusLg,
     overflow: 'hidden',
-    border: '1px solid #e2e8f0',
+    border: `1px solid ${theme.border}`,
     cursor: 'crosshair',
     width: '100%',
   },
@@ -279,14 +301,14 @@ const styles = {
   pin: {
     position: 'absolute',
     transform: 'translate(-50%, -50%)',
-    width: 30,
-    height: 30,
+    width: 34,
+    height: 34,
     borderRadius: '50%',
-    background: '#e11d48',
-    color: '#fff',
-    border: '2px solid #fff',
-    boxShadow: '0 1px 4px rgba(0,0,0,0.4)',
-    fontWeight: 700,
+    background: theme.dangerBg,
+    color: theme.text,
+    border: `3px solid ${theme.danger}`,
+    boxShadow: '0 2px 8px rgba(0,0,0,0.35)',
+    fontWeight: 800,
     fontSize: 14,
     cursor: 'pointer',
     display: 'flex',
@@ -297,24 +319,27 @@ const styles = {
   pinButtons: { display: 'flex', gap: 8, marginTop: 12 },
   smallBtn: {
     padding: '8px 12px',
-    borderRadius: 8,
-    border: '1px solid #cbd5e1',
-    background: '#f8fafc',
+    borderRadius: theme.radiusInput,
+    border: `1px solid ${theme.border}`,
+    background: theme.card,
+    color: theme.textMuted2,
     cursor: 'pointer',
-    fontSize: 14,
+    fontSize: 13,
+    fontFamily: 'inherit',
   },
-  error: { color: '#e11d48', marginTop: 16 },
+  error: { color: theme.dangerText, marginTop: 16, fontSize: 14 },
   saveBtn: {
     display: 'block',
     width: '100%',
     marginTop: 24,
-    padding: '14px',
-    borderRadius: 10,
+    background: theme.accent,
     border: 'none',
-    background: '#2563eb',
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 700,
+    borderRadius: theme.radiusMd,
+    padding: 16,
+    color: theme.accentText,
+    fontSize: 15,
+    fontWeight: 800,
     cursor: 'pointer',
+    fontFamily: 'inherit',
   },
 }

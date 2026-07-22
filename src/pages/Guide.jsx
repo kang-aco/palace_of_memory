@@ -1,14 +1,14 @@
 import { Link } from 'react-router-dom'
+import theme, { floatUp } from '../theme.js'
 
 // 앱 안에서 바로 읽는 기억법 가이드입니다. (저장소의 GUIDE.md와 같은 내용)
+// 목업에는 이 화면이 없어서, 나머지 화면과 같은 다크 테마 톤으로 직접 맞췄습니다.
 export default function Guide() {
   return (
     <div style={styles.wrap}>
-      <div style={styles.topbar}>
-        <Link to="/" style={styles.back}>
-          ← 홈으로
-        </Link>
-      </div>
+      <Link to="/" style={styles.back}>
+        ← 홈으로
+      </Link>
 
       <h1 style={styles.h1}>📖 기억법 가이드</h1>
       <p style={styles.lead}>
@@ -123,55 +123,66 @@ function Technique({ name, children }) {
 
 const styles = {
   wrap: {
-    maxWidth: 640,
-    margin: '40px auto',
-    padding: '0 20px 60px',
-    fontFamily: 'system-ui, sans-serif',
-    color: '#1e293b',
+    ...floatUp,
     lineHeight: 1.7,
+    paddingBottom: 40,
   },
-  topbar: { marginBottom: 16 },
-  back: { color: '#2563eb', textDecoration: 'none', fontSize: 14 },
-  h1: { fontSize: 26, margin: '8px 0 12px' },
+  back: {
+    display: 'inline-block',
+    background: 'none',
+    border: 'none',
+    color: theme.textMuted2,
+    fontSize: 13,
+    fontWeight: 600,
+    marginBottom: 16,
+  },
+  h1: { fontSize: 22, margin: '0 0 12px', fontWeight: 800 },
   lead: {
-    background: '#f1f5f9',
-    borderRadius: 12,
+    background: theme.card,
+    border: `1px solid ${theme.border}`,
+    borderRadius: theme.radiusMd,
     padding: 16,
-    fontSize: 15,
+    fontSize: 14,
+    color: theme.textMuted2,
     marginBottom: 8,
   },
   section: { marginTop: 26 },
-  h2: { fontSize: 19, margin: '0 0 10px', borderLeft: '4px solid #2563eb', paddingLeft: 10 },
-  p: { fontSize: 15, margin: '0 0 10px' },
-  ol: { fontSize: 15, paddingLeft: 22, margin: 0, display: 'grid', gap: 8 },
-  ul: { fontSize: 15, paddingLeft: 22, margin: 0, display: 'grid', gap: 6, listStyle: 'none' },
+  h2: {
+    fontSize: 16,
+    margin: '0 0 10px',
+    borderLeft: `4px solid ${theme.accent}`,
+    paddingLeft: 10,
+    fontWeight: 800,
+  },
+  p: { fontSize: 14, margin: '0 0 10px', color: theme.textMuted2 },
+  ol: { fontSize: 14, paddingLeft: 22, margin: 0, display: 'grid', gap: 8, color: theme.textMuted2 },
+  ul: { fontSize: 14, paddingLeft: 22, margin: 0, display: 'grid', gap: 6, listStyle: 'none', color: theme.textMuted2 },
   tech: {
-    border: '1px solid #e2e8f0',
-    borderRadius: 10,
+    border: `1px solid ${theme.border}`,
+    borderRadius: theme.radiusSm,
     padding: '12px 14px',
     marginBottom: 10,
-    background: '#fff',
+    background: theme.card,
   },
-  techName: { fontWeight: 700, marginBottom: 4 },
-  techBody: { fontSize: 14, color: '#334155' },
-  ex: { display: 'inline-block', marginTop: 6, color: '#0f766e', fontSize: 13.5 },
+  techName: { fontWeight: 700, marginBottom: 4, fontSize: 14 },
+  techBody: { fontSize: 13, color: theme.textMuted2 },
+  ex: { display: 'inline-block', marginTop: 6, color: theme.accentSoftText2, fontSize: 12.5 },
   note: {
     marginTop: 10,
-    background: '#fef2f2',
-    border: '1px solid #fecaca',
-    color: '#b91c1c',
-    borderRadius: 8,
+    background: theme.dangerBgAlt,
+    border: `1px solid ${theme.dangerBorder}`,
+    color: theme.dangerText,
+    borderRadius: theme.radiusInput,
     padding: '10px 12px',
-    fontSize: 14,
+    fontSize: 13,
   },
   cta: { marginTop: 30, textAlign: 'center' },
   ctaBtn: {
     display: 'inline-block',
     padding: '14px 22px',
-    borderRadius: 10,
-    background: '#2563eb',
-    color: '#fff',
-    fontWeight: 700,
-    textDecoration: 'none',
+    borderRadius: theme.radiusSm,
+    background: theme.accent,
+    color: theme.accentText,
+    fontWeight: 800,
   },
 }
