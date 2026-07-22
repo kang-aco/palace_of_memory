@@ -1,34 +1,43 @@
 // 핀 하나에 연결된 "암기 내용(Anchor)"을 다루는 API입니다.
-// 주소: /api/pins/:pinId/anchor
-//   - GET    : 이 핀에 저장된 앵커를 가져옵니다. (없으면 anchor: null)
-//   - PUT    : 앵커를 저장합니다. 이미 있으면 수정, 없으면 새로 만듭니다. (upsert)
-//   - DELETE : 이 핀의 앵커를 지웁니다.
-//
-// ※ 이번 버전 원칙: 암기 내용은 항상 사용자가 직접(텍스트 또는 음성으로) 입력합니다.
-//   외부 API가 내용을 자동으로 채워주지 않습니다.
+// 주소: /api/pins/:pinId/anchor  (GET / PUT / DELETE)
+// 로그인한 사용자가 "자기 룸의 핀"에만 접근할 수 있도록 소유권을 확인합니다.
+
+// 이 핀이 현재 사용자 소유인지 확인. 맞으면 pinId, 아니면 null.
+async function ownsPin(env, userId, pinId) {
+  const row = await env.DB
+    .prepare(
+      `SELECT p.id FROM Pin p JOIN Room r ON r.id = p.roomId
+       WHERE p.id = ? AND r.userId = ?`
+    )
+    .bind(pinId, userId)
+    .first()
+  return !!row
+}
 
 export async function onRequestGet(context) {
   try {
     const pinId = context.params.pinId
+    if (!(await ownsPin(context.env, context.data.user.id, pinId))) {
+      return Response.json({ error: '접근 권한이 없습니다.' }, { status: 404 })
+    }
     const anchor = await getAnchor(context.env.DB, pinId)
     return Response.json({ anchor })
   } catch (err) {
-    return Response.json(
-      { error: '앵커를 불러오지 못했습니다.', detail: String(err) },
-      { status: 500 }
-    )
+    return Response.json({ error: '앵커를 불러오지 못했습니다.', detail: String(err) }, { status: 500 })
   }
 }
 
 export async function onRequestPut(context) {
   try {
     const pinId = context.params.pinId
+    if (!(await ownsPin(context.env, context.data.user.id, pinId))) {
+      return Response.json({ error: '접근 권한이 없습니다.' }, { status: 404 })
+    }
     const body = await context.request.json()
 
     const content = (body.content ?? '').trim()
     const techniqueType = body.techniqueType ?? null
     const associationText = (body.associationText ?? '').trim() || null
-    // inputMethod는 'text' 또는 'voice'만 허용합니다.
     const inputMethod = body.inputMethod === 'voice' ? 'voice' : 'text'
 
     if (!content) {
@@ -36,17 +45,14 @@ export async function onRequestPut(context) {
     }
 
     const existing = await getAnchor(context.env.DB, pinId)
-
     if (existing) {
       await context.env.DB
         .prepare(
-          `UPDATE Anchor
-             SET content = ?, techniqueType = ?, associationText = ?, inputMethod = ?
+          `UPDATE Anchor SET content = ?, techniqueType = ?, associationText = ?, inputMethod = ?
            WHERE id = ?`
         )
         .bind(content, techniqueType, associationText, inputMethod, existing.id)
         .run()
-
       return Response.json({
         anchor: { ...existing, content, techniqueType, associationText, inputMethod },
       })
@@ -60,32 +66,27 @@ export async function onRequestPut(context) {
       )
       .bind(id, pinId, content, techniqueType, associationText, inputMethod)
       .run()
-
     return Response.json({
       anchor: { id, pinId, content, techniqueType, associationText, inputMethod },
     })
   } catch (err) {
-    return Response.json(
-      { error: '앵커 저장에 실패했습니다.', detail: String(err) },
-      { status: 500 }
-    )
+    return Response.json({ error: '앵커 저장에 실패했습니다.', detail: String(err) }, { status: 500 })
   }
 }
 
 export async function onRequestDelete(context) {
   try {
     const pinId = context.params.pinId
+    if (!(await ownsPin(context.env, context.data.user.id, pinId))) {
+      return Response.json({ error: '접근 권한이 없습니다.' }, { status: 404 })
+    }
     await context.env.DB.prepare('DELETE FROM Anchor WHERE pinId = ?').bind(pinId).run()
     return Response.json({ ok: true })
   } catch (err) {
-    return Response.json(
-      { error: '앵커 삭제에 실패했습니다.', detail: String(err) },
-      { status: 500 }
-    )
+    return Response.json({ error: '앵커 삭제에 실패했습니다.', detail: String(err) }, { status: 500 })
   }
 }
 
-// 한 핀의 앵커를 가져오는 도우미. (핀당 1개로 다루되, 혹시 여러 개면 가장 최근 것)
 async function getAnchor(DB, pinId) {
   return await DB
     .prepare(

@@ -2,15 +2,26 @@
 -- PRD 8번 "데이터 모델" 섹션을 실제 SQL 테이블로 옮긴 파일입니다.
 -- 이 파일은 D1 데이터베이스를 처음 만들 때 한 번 실행합니다. (README.md 참고)
 
--- 1) User: 사용자 정보
+-- 1) User: 사용자 정보 (로그인 계정)
 CREATE TABLE IF NOT EXISTS User (
   id TEXT PRIMARY KEY,
-  email TEXT,
+  email TEXT UNIQUE,
   displayName TEXT,
+  passwordHash TEXT,        -- PBKDF2로 해싱한 비밀번호 (원문 저장 안 함)
+  passwordSalt TEXT,        -- 사용자별 소금값
   settings TEXT,            -- JSON 문자열로 저장 (예: {"darkMode": true})
   streakCount INTEGER DEFAULT 0,
   totalReviewCount INTEGER DEFAULT 0,
   createdAt TEXT DEFAULT (datetime('now'))
+);
+
+-- 1-1) Session: 로그인 세션 (HttpOnly 쿠키의 토큰을 해시해서 보관)
+CREATE TABLE IF NOT EXISTS Session (
+  tokenHash TEXT PRIMARY KEY,
+  userId TEXT NOT NULL,
+  expiresAt TEXT NOT NULL,
+  createdAt TEXT DEFAULT (datetime('now')),
+  FOREIGN KEY (userId) REFERENCES User(id)
 );
 
 -- 2) Room: 로먼룸(기억 세트) 하나

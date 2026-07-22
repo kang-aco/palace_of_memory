@@ -1,13 +1,17 @@
-// GET /api/rooms/:id  → 룸 1개와 그 룸에 속한 핀들을 함께 가져옵니다.
-// Cloudflare Pages Functions는 파일명 [id].js 의 대괄호 부분을
-// 주소의 실제 값으로 채워서 context.params.id 로 전달해 줍니다.
+// GET /api/rooms/:id  → 내 룸 1개 + 핀들(+ 각 핀의 암기 내용/최근 복습) 가져오기
+// 다른 사람의 룸 id로 접근하면 404가 나도록 userId로 소유권을 확인합니다.
+import { toImageUrl } from '../../_lib/images.js'
+
 export async function onRequestGet(context) {
   try {
+    const userId = context.data.user.id
     const roomId = context.params.id
 
     const room = await context.env.DB
-      .prepare('SELECT id, name, category, imageUrls, createdAt FROM Room WHERE id = ?')
-      .bind(roomId)
+      .prepare(
+        'SELECT id, name, category, imageUrls, createdAt FROM Room WHERE id = ? AND userId = ?'
+      )
+      .bind(roomId, userId)
       .first()
 
     if (!room) {
@@ -21,13 +25,10 @@ export async function onRequestGet(context) {
       .bind(roomId)
       .all()
 
-    // 3단계: 각 핀에 연결된 암기 내용(Anchor)을 함께 붙여서 내려줍니다.
-    // 한 룸의 모든 앵커를 한 번에 가져와, 핀 id 기준으로 짝지어 줍니다.
     const { results: anchors } = await context.env.DB
       .prepare(
         `SELECT a.id, a.pinId, a.content, a.techniqueType, a.associationText, a.inputMethod
-         FROM Anchor a
-         JOIN Pin p ON p.id = a.pinId
+         FROM Anchor a JOIN Pin p ON p.id = a.pinId
          WHERE p.roomId = ?`
       )
       .bind(roomId)
@@ -36,8 +37,6 @@ export async function onRequestGet(context) {
     const anchorByPin = {}
     for (const a of anchors) anchorByPin[a.pinId] = a
 
-    // 4단계: 각 앵커의 "가장 최근 복습 기록"을 붙여줍니다.
-    // reviewedAt 오름차순으로 훑으면서 마지막 값이 최신이 되도록 덮어씁니다.
     const { results: reviews } = await context.env.DB
       .prepare(
         `SELECT rv.anchorId, rv.recallSuccess, rv.difficulty, rv.reviewedAt, rv.nextReviewDate
@@ -60,16 +59,15 @@ export async function onRequestGet(context) {
       }
     }
     for (const a of anchors) a.lastReview = lastReviewByAnchor[a.id] ?? null
-
     for (const pin of pins) pin.anchor = anchorByPin[pin.id] ?? null
 
-    // imageUrls는 JSON 문자열 → 실제 배열로 바꿔서 내려줍니다.
-    let imageUrls = []
+    let stored = []
     try {
-      imageUrls = room.imageUrls ? JSON.parse(room.imageUrls) : []
+      stored = room.imageUrls ? JSON.parse(room.imageUrls) : []
     } catch {
-      imageUrls = []
+      stored = []
     }
+    const imageUrls = stored.map(toImageUrl)
 
     return Response.json({
       room: {

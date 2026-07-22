@@ -226,3 +226,36 @@ npx wrangler pages dev ./dist
 - **기억법 가이드**: 앱 안 **📖 기억법 가이드**(`/guide`) 또는 저장소의 [`GUIDE.md`](./GUIDE.md).
   장소법 원리, 4가지 기법(숫자변환/문자변환/연상기억/기초결합), 좋은 연상의 원칙,
   복습(간격 반복) 활용법, "조선 왕 순서" 예시 워크스루까지 담았습니다.
+
+---
+
+## 로그인(계정) + R2 이미지 저장 (다중 사용자 버전)
+
+여러 학생이 **각자 자기 데이터만** 보도록 로그인을 추가하고, 사진은 D1 대신
+**R2(이미지 저장소)** 에 저장하도록 바꿨습니다.
+
+**바뀐 점**
+- **로그인**: 이메일+비밀번호(회원가입/로그인). 비밀번호는 PBKDF2 해싱, 세션은 HttpOnly 쿠키.
+  - 관련 파일: `functions/_lib/auth.js`, `functions/api/auth/*`, `functions/api/_middleware.js`(로그인 안 하면 /api 접근 401), `src/auth/AuthContext.jsx`, `src/pages/Login.jsx`
+  - 모든 룸/핀/앵커/복습/통계는 **로그인한 사용자(userId) 기준**으로만 조회·저장됩니다.
+- **R2 이미지**: 사진은 `memoryroom-images` 버킷에 저장하고, D1에는 키만 저장.
+  - 관련 파일: `functions/_lib/images.js`, `functions/api/images/[[path]].js`(이미지 서빙), `wrangler.toml`의 `[[r2_buckets]]`
+- **DB 변경**: `User`에 `passwordHash`/`passwordSalt` 추가, `Session` 테이블 추가 → `migrations/0002_auth.sql`
+
+**배포 절차 (순서 중요)**
+1. **원격 D1에 마이그레이션 적용** (기존 DB에 로그인용 컬럼/테이블 추가):
+   ```bash
+   npx wrangler d1 execute memoryroom_db --file=./migrations/0002_auth.sql --remote
+   ```
+2. **R2 활성화 + 버킷 생성**: Cloudflare 대시보드에서 R2를 한 번 활성화(무료 티어, 결제수단
+   등록만 요구될 수 있음)한 뒤:
+   ```bash
+   npx wrangler r2 bucket create memoryroom-images
+   ```
+3. **Pages에 R2 바인딩** — `wrangler.toml`의 `[[r2_buckets]]`를 Pages가 읽어 자동 적용됩니다.
+   (D1처럼) 혹시 안 잡히면 대시보드 → Settings → Functions → R2 bindings에서 `BUCKET` =
+   `memoryroom-images` 추가.
+4. **push → 자동 배포**. (위 1·2를 먼저 하지 않으면 회원가입/사진저장이 실패하니 순서 지키기)
+
+> 참고: 로그인 추가 전에 만든 "익명 룸"(userId 없음)은 로그인 후 화면에 보이지 않습니다.
+> 기존 테스트 데이터라 무시해도 되고, 필요하면 특정 사용자에게 붙여줄 수도 있습니다.

@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { useAuth } from '../auth/AuthContext.jsx'
 
 // 홈 화면입니다.
 //  - 상단: DB 연결 상태 확인 (1단계에서 하던 것 그대로 유지)
 //  - 아래: 저장된 룸 목록 + "새 룸 만들기" 버튼 (2단계에서 추가)
 export default function Home() {
+  const { user, logout } = useAuth()
   // status: 'checking' | 'ok' | 'error'
   const [status, setStatus] = useState('checking')
   const [rooms, setRooms] = useState([])
@@ -24,6 +26,13 @@ export default function Home() {
 
   return (
     <div style={styles.wrap}>
+      <div style={styles.userBar}>
+        <span style={styles.hello}>👤 {user?.displayName || user?.email}</span>
+        <button type="button" style={styles.logoutBtn} onClick={logout}>
+          로그아웃
+        </button>
+      </div>
+
       <h1 style={styles.title}>🏠 메모리룸 (MemoryRoom)</h1>
       <p style={styles.sub}>
         사진 위에 핀을 찍어 기억을 저장하세요 ·{' '}
@@ -89,6 +98,23 @@ const styles = {
     margin: '48px auto',
     padding: '0 20px',
     fontFamily: 'system-ui, sans-serif',
+  },
+  userBar: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 20,
+    fontSize: 14,
+  },
+  hello: { color: '#334155', fontWeight: 600 },
+  logoutBtn: {
+    padding: '6px 12px',
+    borderRadius: 8,
+    border: '1px solid #cbd5e1',
+    background: '#fff',
+    cursor: 'pointer',
+    fontSize: 13,
+    color: '#64748b',
   },
   title: { fontSize: 26, marginBottom: 4, textAlign: 'center' },
   sub: { color: '#64748b', marginBottom: 24, textAlign: 'center' },

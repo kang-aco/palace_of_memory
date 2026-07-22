@@ -9,3 +9,12 @@ pages_build_output_dir = "dist"
 binding = "DB"
 database_name = "memoryroom_db"
 database_id = "974b7200-8c21-4c97-a321-0504d8c4921d"
+
+# R2 이미지 저장소를 이 프로젝트에 연결(바인딩)하는 부분입니다.
+# 코드에서는 context.env.BUCKET 으로 접근합니다.
+# ※ 배포(프로덕션)에서 쓰려면 Cloudflare 대시보드에서 R2를 먼저 활성화한 뒤
+#    `npx wrangler r2 bucket create memoryroom-images` 로 버킷을 만들어야 합니다.
+#    로컬 개발(`wrangler pages dev`)은 R2를 자동으로 흉내내므로 그대로 동작합니다.
+[[r2_buckets]]
+binding = "BUCKET"
+bucket_name = "memoryroom-images"
