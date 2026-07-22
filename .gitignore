@@ -1,0 +1,8 @@
+node_modules
+dist
+.wrangler
+.env
+
+# 로컬 전용(각자 PC 설정) — 저장소에 올리지 않음
+.claude
+.DS_Store

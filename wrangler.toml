@@ -1,0 +1,11 @@
+name = "memoryroom"
+compatibility_date = "2026-07-01"
+pages_build_output_dir = "dist"
+
+# D1 데이터베이스를 이 프로젝트에 연결(바인딩)하는 부분입니다.
+# database_id는 README.md의 안내대로 `wrangler d1 create` 명령을 실행하면
+# 터미널에 출력됩니다. 그 값을 아래 database_id 자리에 복사해서 붙여넣으세요.
+[[d1_databases]]
+binding = "DB"
+database_name = "memoryroom_db"
+database_id = "974b7200-8c21-4c97-a321-0504d8c4921d"
