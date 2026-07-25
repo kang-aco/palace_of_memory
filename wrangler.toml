@@ -1,4 +1,6 @@
-name = "memoryroom"
+# 실제 Cloudflare Pages 프로젝트 이름과 같아야 합니다.
+# (다르면 `wrangler pages deploy` 실행 시 엉뚱한 이름으로 새 프로젝트가 만들어집니다.)
+name = "palace-of-memory"
 compatibility_date = "2026-07-01"
 pages_build_output_dir = "dist"
 
