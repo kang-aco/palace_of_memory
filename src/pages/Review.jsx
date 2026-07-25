@@ -279,11 +279,13 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
+    // 배경은 투명하게 두고, 테두리와 글자 그림자로 숫자를 읽히게 합니다.
+    textShadow: '0 1px 3px rgba(0,0,0,0.9), 0 0 6px rgba(0,0,0,0.8)',
   },
   pinIdle: {
     width: 30,
     height: 30,
-    background: theme.progressTrack,
+    background: 'transparent',
     border: `2px solid ${theme.text}`,
     opacity: 0.5,
     fontSize: 13,
@@ -291,9 +293,9 @@ const styles = {
   pinCurrent: {
     width: 40,
     height: 40,
-    background: theme.accent,
-    border: `3px solid ${theme.text}`,
-    color: theme.accentText,
+    background: 'transparent',
+    border: `3px solid ${theme.accent}`,
+    color: theme.text,
     fontSize: 16,
     boxShadow: `0 0 0 6px ${theme.accentGlow}`,
   },

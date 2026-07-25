@@ -304,10 +304,12 @@ const styles = {
     width: 34,
     height: 34,
     borderRadius: '50%',
-    background: theme.dangerBg,
+    // 배경을 투명하게 두어 핀 아래의 사진이 그대로 보이게 합니다.
+    background: 'transparent',
     color: theme.text,
     border: `3px solid ${theme.danger}`,
     boxShadow: '0 2px 8px rgba(0,0,0,0.35)',
+    textShadow: '0 1px 3px rgba(0,0,0,0.9), 0 0 6px rgba(0,0,0,0.8)',
     fontWeight: 800,
     fontSize: 14,
     cursor: 'pointer',
